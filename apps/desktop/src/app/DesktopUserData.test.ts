@@ -42,6 +42,31 @@ it.effect.each(["t3code", "T3 Code (Alpha)"])(
     }).pipe(Effect.scoped, Effect.provide(NodeServices.layer)),
 );
 
+it.effect("uses a separate profile without migrating the installed client's browser state", () =>
+  Effect.gen(function* () {
+    const fs = yield* FileSystem.FileSystem;
+    const path = yield* Path.Path;
+    const directory = yield* fs.makeTempDirectoryScoped({ prefix: "t3-fork-profile-" });
+    const installedProfile = path.join(directory, "t3code-v2");
+    const forkProfile = path.join(directory, "fork", "desktop-profile");
+    yield* fs.makeDirectory(installedProfile);
+    yield* fs.writeFileString(path.join(installedProfile, "Local State"), "installed client state");
+    const result = yield* resolveUserDataPath({
+      appDataDirectory: directory,
+      userDataDirectory: forkProfile,
+      isDevelopment: false,
+      platform: "win32",
+    });
+    assert.equal(result, forkProfile);
+    assert.isTrue(yield* fs.exists(forkProfile));
+    assert.isFalse(yield* fs.exists(path.join(forkProfile, "Local State")));
+    assert.equal(
+      yield* fs.readFileString(path.join(installedProfile, "Local State")),
+      "installed client state",
+    );
+  }).pipe(Effect.scoped, Effect.provide(NodeServices.layer)),
+);
+
 const gpuCacheDirectories = [
   "GPUCache",
   "GrShaderCache",

@@ -13,15 +13,20 @@ GitHub Actions must be enabled on the fork for scheduled checks to run.
 
 ## Run locally on Windows
 
-Install the locked dependencies with `pnpm install --frozen-lockfile`, then run:
+Install the locked dependencies with `pnpm install --frozen-lockfile`, build with
+`pnpm exec vp run build:desktop`, and prepare Electron with
+`pnpm --filter @t3tools/desktop run ensure:electron`. Then open the **G3Code** desktop
+shortcut. It starts the built Electron app without a console or a browser pairing step.
+To launch from a terminal:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts/fork/start.ps1
 ```
 
-Add `-Desktop` for the Electron development app. The launcher always uses
-`~/.g3code`, separate from the installed client's `~/.t3` home. Follow the local
-pairing URL printed by the development runner. Your installed client stays usable.
+The launcher uses `~/.g3code` for data and `~/.g3code/desktop-profile` for Electron's
+browser storage. The installed client stays usable alongside the fork. Add `-Web`
+to run the browser development server instead. After pulling source updates, rebuild
+the desktop app before launching it again.
 
 ## Import existing history
 
