@@ -1,0 +1,51 @@
+name: Fork upstream updates
+
+on:
+  schedule:
+    - cron: "23 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+  checks: write
+
+concurrency:
+  group: fork-upstream
+  cancel-in-progress: false
+
+jobs:
+  update:
+    if: github.repository == 'glowdotjpeg/g3code'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: g3code
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: package.json
+      - name: Configure update author
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      - name: Prepare upstream update
+        id: update
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/fork/update.mjs
+      - name: Setup build tools
+        if: steps.update.outputs.merged == 'true'
+        uses: ./.github/actions/setup-ci-deps
+      - name: Check merged update
+        if: steps.update.outputs.merged == 'true'
+        run: vp run check:changed origin/g3code
+      - name: Publish verified update
+        if: steps.update.outputs.merged == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          UPSTREAM_SHA: ${{ steps.update.outputs.upstream }}
+        run: node scripts/fork/update.mjs publish

@@ -40,6 +40,7 @@ import { ChildProcess, ChildProcessSpawner } from "effect/process";
 
 import { decide, readWorkspace } from "../.github/scripts/ci-changes.cjs";
 import { vitePlusCommand } from "./check-changed-command.ts";
+import { ignoredCheckInputs } from "./check-changed-ignored.ts";
 
 const GiB = 1024 ** 3;
 
@@ -274,18 +275,15 @@ const checkChanged = Effect.fn("checkChanged")(function* (input: {
         "--",
       ]),
     );
-    const ignored = yield* lines(
+    const ignoredEntries = yield* lines(
       "ls-files",
       "--others",
       "--ignored",
       "--exclude-standard",
-      "--",
-      ":(glob)**/.generated/**",
-      ":(glob)**/.astro/**",
-      ":(glob)**/*.d.ts",
-      ":(glob)**/.env*",
-      ":(exclude,glob)**/node_modules/**",
+      "--directory",
+      "--no-empty-directory",
     );
+    const ignored = yield* Effect.promise(() => ignoredCheckInputs(root, ignoredEntries));
     for (const file of [
       // Raw bytes of changed files too: .gitattributes normalizes line endings in
       // the diff, but the formatter reads the file as it is on disk.
