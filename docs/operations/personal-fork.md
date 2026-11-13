@@ -34,7 +34,7 @@ node scripts/fork/snapshot.mjs "$env:USERPROFILE\.g3code"
 The source is opened read-only and copied with SQLite's online backup API, which
 includes committed WAL data. All projects, threads, messages and event history
 are retained, including archived threads and subagents. Attachments, themes,
-provider settings, local secrets and keybindings are copied locally. Personal
+provider settings, provider secrets, browser captures and keybindings are copied locally. Personal
 data stays outside the repository.
 
 Copied work is cancelled, schedules are disabled, project scripts are cleared,

@@ -281,6 +281,7 @@ export async function snapshot(sourceHome, destinationHome) {
   }
   for (const name of [
     "attachments",
+    "browser-artifacts",
     "themes",
     "secrets",
     "settings.json",
